@@ -7,6 +7,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const pdf = require("pdf-parse");
+const API_URL = "https://backendgoodexam-production.up.railway.app"; // Remplace par ton URL d'API
 
 const { v4: uuidv4 } = require("uuid"); // Pour générer des noms uniques
 
@@ -484,7 +485,7 @@ app.get("/api/exams", (req, res) => {
   const sql = `
   SELECT e.idExamen AS id, 
     e.titre AS title, 
-    CONCAT('http://localhost:5000/uploads/', e.fichier) AS fileUrl, 
+    CONCAT(API_URL,"/uploads/", e.fichier) AS fileUrl, 
     e.publie, 
     CONCAT(ens.prenom, ' ', ens.nom) AS teacher
   FROM Examen e
