@@ -238,7 +238,7 @@ app.get("/api/copies/:Etudiant", (req, res) => {
   const query = `
     SELECT e.titre AS nomMatiere, e.type, c.note, c.estPlagiat 
     FROM Examen e 
-    JOIN copie c ON e.idExamen = c.idExamen 
+    JOIN Copie c ON e.idExamen = c.idExamen 
     WHERE c.idEtudiant = ?`;
 
   db.query(query, [idEtudiant], (err, results) => {
@@ -331,7 +331,7 @@ app.get("/api/correction/:id", async (req, res) => {
       
       // Récupérer toutes les copies non corrigées pour cet examen
       const [copies] = await db.promise().query(
-        "SELECT * FROM copie WHERE idExamen = ? AND note = 0",
+        "SELECT * FROM Copie WHERE idExamen = ? AND note = 0",
         [examenId]
       );
       
