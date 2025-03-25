@@ -670,6 +670,86 @@ app.post("/login", (req, res) => {
 
 
 
+app.get("/api/statistiques/enseignant/:idEnseignant", async (req, res) => {
+  const idEnseignant = parseInt(req.params.idEnseignant, 10); // Convertir en entier
+
+  if (isNaN(idEnseignant)) {
+    return res.status(400).json({ error: "ID enseignant invalide." });
+  }
+
+  try {
+    console.log("🔍 Récupération des stats pour l'enseignant ID:",idEnseignant);
+
+    // 1️⃣ Récupérer la moyenne par titre d'examen
+    const moyenneQuery = `
+      SELECT E.titre, AVG(C.note) AS moyenne
+      FROM Copie C
+      JOIN Examen E ON C.idExamen = E.idExamen
+      WHERE E.idEnseignant = ? 
+      GROUP BY E.titre;
+    `;
+    const [moyenneResult] = await db.promise().query(moyenneQuery, [idEnseignant]);
+    console.log("📊 Moyenne par examen:", moyenneResult);
+
+    // 2️⃣ Récupérer la distribution des notes
+    const distributionQuery = `
+      SELECT
+        SUM(CASE WHEN C.note BETWEEN 0 AND 5 THEN 1 ELSE 0 END) AS "0-5",
+        SUM(CASE WHEN C.note BETWEEN 5 AND 10 THEN 1 ELSE 0 END) AS "5-10",
+        SUM(CASE WHEN C.note BETWEEN 10 AND 15 THEN 1 ELSE 0 END) AS "10-15",
+        SUM(CASE WHEN C.note BETWEEN 15 AND 20 THEN 1 ELSE 0 END) AS "15-20"
+      FROM Copie C
+      JOIN Examen E ON C.idExamen = E.idExamen
+      WHERE E.idEnseignant = ? GROUP BY E.titre;
+    `;
+    const [distributionResult] = await db.promise().query(distributionQuery, [idEnseignant]);
+    console.log("📊 Distribution des notes:", distributionResult);
+
+    const distribution = distributionResult.length > 0 ? [
+      { name: "0-5", value: distributionResult[0]["0-5"] || 0 },
+      { name: "5-10", value: distributionResult[0]["5-10"] || 0 },
+      { name: "10-15", value: distributionResult[0]["10-15"] || 0 },
+      { name: "15-20", value: distributionResult[0]["15-20"] || 0 }
+    ] : [];
+
+    // 3️⃣ Récupérer le taux de réussite
+    const tauxQuery = `
+      SELECT 
+        (SUM(CASE WHEN C.note >= 10 THEN 1 ELSE 0 END) / COUNT(*)) * 100 AS tauxReussite
+      FROM Copie C
+      JOIN Examen E ON C.idExamen = E.idExamen
+      WHERE E.idEnseignant = ? GROUP BY E.titre;
+    `;
+    const [tauxResult] = await db.promise().query(tauxQuery, [idEnseignant]);
+    console.log("🎯 Taux de réussite:", tauxResult);
+
+    const tauxReussite = tauxResult.length > 0 ? tauxResult[0]?.tauxReussite || 0 : 0;
+
+    // ✅ Envoyer les données sous une structure claire
+    res.json({
+      moyenne: moyenneResult, // Tableau contenant titre et moyenne
+      distribution,
+      tauxReussite
+    });
+    console.log("✅ Données envoyées au frontend :", {
+      moyenne: moyenneResult,
+      distribution,
+      tauxReussite
+    });
+    
+
+  } catch (error) {
+    console.error("❌ Erreur serveur:", error);
+    res.status(500).json({ error: "Erreur serveur." });
+  }
+});
+
+
+
+//---------------------------------------------------------------------------------
+
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
