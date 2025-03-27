@@ -25,9 +25,18 @@ require("dotenv").config();
 const db = require("./db"); // Importation de la connexion MySQL
 
 
-app.get('/', (req, res) => {
-    res.send('🚀 Backend opérationnel !');
+const db = require("./db"); // Importation du pool MySQL
+
+app.get('/', async (req, res) => {
+    try {
+        const [rows] = await db.query("SELECT '🚀 Backend opérationnel !' AS message");
+        res.send(rows[0].message);
+    } catch (error) {
+        console.error("Erreur lors de la connexion à la base de données :", error);
+        res.status(500).send("Erreur de connexion à la base de données");
+    }
 });
+
 
 
 
