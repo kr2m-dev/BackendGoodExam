@@ -1,12 +1,12 @@
 const mysql = require('mysql2');
 
-// Configuration de la base de données avec un pool de connexions
+// Remplace `mysql.createConnection()` par `mysql.createPool()`
 const pool = mysql.createPool({
-    uri: process.env.DATABASE_URL, // Utilisation de l'URI de connexion
+    uri: process.env.DATABASE_URL,
     waitForConnections: true,
-    connectionLimit: 10, // Nombre max de connexions simultanées
+    connectionLimit: 10,
     queueLimit: 0
 });
 
-// Exporter le pool au lieu d'une connexion unique
-module.exports = pool.promise(); // Utilisation de `.promise()` pour supporter async/await
+// Exportation du pool (sans `.promise()`, pour garder ton style de code actuel)
+module.exports = pool;
