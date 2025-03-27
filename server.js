@@ -22,7 +22,7 @@ app.use(express.json());
 const API_KEY = process.env.DEEPSEEK_API_KEY; // Utilisation de la clé Groq
 
 require("dotenv").config();
-const db = require("./db"); // Importation de la connexion MySQL
+//const db = require("./db"); // Importation de la connexion MySQL
 
 
 const db = require("./db"); // Importation du pool MySQL
